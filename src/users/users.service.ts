@@ -14,8 +14,8 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const { password, email, ...data } = createUserDto;
-      const userExist = await this.findByEmail(email);
+      const { password, ...data } = createUserDto;
+      const userExist = await this.findByEmail(data.email);
       if (userExist) {
         throw new BadRequestException('User already exist');
       }
@@ -30,17 +30,20 @@ export class UsersService {
     return await this.userModel.findOne({ email });
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll(): Promise<User[]> {
+    return await this.userModel.find();
   }
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<void> {
+    try {
+      await this.userModel.updateOne({ _id: id }, updateUserDto);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   remove(id: number) {

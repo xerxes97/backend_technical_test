@@ -2,8 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema()
 export class User {
-  @Prop()
-  _id: string;
+  readonly _id: string;
 
   @Prop({ required: true })
   name: string;
@@ -19,6 +18,9 @@ export class User {
 
   @Prop({ default: false, type: Boolean })
   isActive: boolean;
+
+  @Prop()
+  token: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
