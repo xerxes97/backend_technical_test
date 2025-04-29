@@ -27,15 +27,27 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return await this.userModel.findOne({ email });
+    try {
+      return await this.userModel.findOne({ email });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async findAll(): Promise<User[]> {
-    return await this.userModel.find();
+    try {
+      return await this.userModel.find();
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number): Promise<User | null> {
+    try {
+      return await this.userModel.findById(id);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<void> {
@@ -46,7 +58,11 @@ export class UsersService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number): Promise<void> {
+    try {
+      await this.userModel.deleteOne({ _id: id });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 }
