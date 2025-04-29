@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RecoverPasswordDto } from './dto/recoverPassword.dto';
@@ -13,7 +13,12 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  recover(@Body() recoverPasswordDto: RecoverPasswordDto) {
+  forgotPassword(@Body() recoverPasswordDto: RecoverPasswordDto) {
     return this.authService.recoverPassword(recoverPasswordDto);
+  }
+
+  @Get(':userId/verify/:token')
+  recoverPassword(@Param() params: { userId: string; token: string }) {
+    return JSON.stringify(params);
   }
 }
