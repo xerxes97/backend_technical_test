@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { SessionSchema } from 'src/session/entities/session.entity';
 import { UserSchema } from 'src/users/entities/user.entity';
 
 @Module({
@@ -17,7 +18,10 @@ import { UserSchema } from 'src/users/entities/user.entity';
         };
       },
     }),
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: 'User', schema: UserSchema },
+      { name: 'Session', schema: SessionSchema },
+    ]),
   ],
   exports: [MongooseModule],
 })

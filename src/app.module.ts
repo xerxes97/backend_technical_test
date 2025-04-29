@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { SenderEmailService } from './sender-email/sender-email.service';
 import { SenderEmailModule } from './sender-email/sender-email.module';
+import { SessionModule } from './session/session.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SenderEmailModule } from './sender-email/sender-email.module';
     DatabaseModule,
     UsersModule,
     SenderEmailModule,
+    SessionModule,
   ],
   controllers: [AppController],
   providers: [AppService, SenderEmailService],

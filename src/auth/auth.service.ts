@@ -7,6 +7,7 @@ import { SenderEmailService } from 'src/sender-email/sender-email.service';
 import { RecoverPasswordDto } from './dto/recoverPassword.dto';
 import { mailTemplates } from 'src/sender-email/templates';
 import { RECOVER_PASSWORD_SUBJECT } from 'src/constants';
+import { SessionService } from 'src/session/session.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,7 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
     private readonly senderEmailService: SenderEmailService,
+    private readonly sessionService: SessionService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -31,7 +33,20 @@ export class AuthService {
         throw new BadRequestException('User Inactive');
       }
       const payload = { email: existingUser.email, id: existingUser._id };
-      return this.jwtService.sign(payload);
+      const token = this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: process.env.JWT_EXPIRES,
+      });
+      const refreshToken = this.jwtService.sign(payload, {
+        secret: process.env.JWT_REFRESH_TOKEN,
+        expiresIn: process.env.JWT_REFRESH_EXPIRES,
+      });
+      const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+      await this.sessionService.create({
+        userId: existingUser._id,
+        refreshToken: hashedRefreshToken,
+      });
+      return token;
     } catch (error) {
       throw new BadRequestException(error);
     }
