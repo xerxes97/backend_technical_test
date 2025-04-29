@@ -42,7 +42,7 @@ export class UsersService {
     }
   }
 
-  async findOne(id: number): Promise<User | null> {
+  async findOne(id: string): Promise<User | null> {
     try {
       return await this.userModel.findById(id);
     } catch (error) {

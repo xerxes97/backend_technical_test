@@ -1,6 +1,6 @@
-import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
-import { IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 
 export class UpdateUserDto extends PartialType(
   OmitType(CreateUserDto, ['password', 'email']),
@@ -8,4 +8,9 @@ export class UpdateUserDto extends PartialType(
   @IsString()
   @IsOptional()
   token: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty({ example: true, required: false })
+  isActive?: boolean;
 }
