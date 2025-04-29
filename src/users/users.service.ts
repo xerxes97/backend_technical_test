@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -15,15 +15,19 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const { password, email, ...data } = createUserDto;
-      const userExist = await this.userModel.findOne({ email });
+      const userExist = await this.findByEmail(email);
       if (userExist) {
-        throw new InternalServerErrorException('User already exist');
+        throw new BadRequestException('User already exist');
       }
       const hashedPassword = await bcrypt.hash(password, 10);
       return await this.userModel.create({ ...data, password: hashedPassword });
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      throw new BadRequestException(error);
     }
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.userModel.findOne({ email });
   }
 
   findAll() {
@@ -34,6 +38,7 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
