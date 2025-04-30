@@ -36,7 +36,7 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get(':email')
+  @Get('email/:email')
   @ApiResponse({
     status: 200,
     type: UserDto,

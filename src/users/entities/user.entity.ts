@@ -16,7 +16,7 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ default: false, type: Boolean })
+  @Prop({ default: true, type: Boolean })
   isActive: boolean;
 
   @Prop()

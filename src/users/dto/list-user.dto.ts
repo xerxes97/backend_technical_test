@@ -5,7 +5,6 @@ import {
   EMAIL_EXAMPLE,
   ID_EXAMPLE,
   NAME_EXAMPLE,
-  PASSWORD_EXAMPLE,
 } from 'src/constants';
 
 export class UserDto {
@@ -22,12 +21,8 @@ export class UserDto {
   email: string;
 
   @IsString()
-  @ApiProperty({ example: PASSWORD_EXAMPLE })
-  password: string;
-
-  @IsString()
   @ApiProperty({ example: DATE_EXAMPLE })
-  createdAt: string;
+  createdAt: Date;
 
   @IsString()
   @ApiProperty({ example: true })

@@ -53,7 +53,10 @@ export class AuthService {
       if (!user) {
         throw new BadRequestException('User not found');
       }
-      const token = this.jwtService.sign({ id: user._id, email: user.email });
+      const { token } = await this.generateTokens({
+        id: user._id,
+        email: user.email,
+      });
       const template = mailTemplates.RECOVER_PASSWORD(user._id, token);
       await this.senderEmailService.sendEmail({
         to: email,

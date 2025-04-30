@@ -41,4 +41,13 @@ export class SessionService {
       throw new BadRequestException(error);
     }
   }
+
+  async removeAll(): Promise<void> {
+    try {
+      console.log('Removing sessions...');
+      await this.sessionModel.deleteMany();
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
 }

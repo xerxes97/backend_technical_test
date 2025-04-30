@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from './entities/user.entity';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import { SEED_USERS } from 'src/constants';
 
 @Injectable()
 export class UsersService {
@@ -12,7 +13,7 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
     try {
       const { password, ...data } = createUserDto;
       const userExist = await this.findByEmail(data.email);
@@ -20,7 +21,13 @@ export class UsersService {
         throw new BadRequestException('User already exist');
       }
       const hashedPassword = await bcrypt.hash(password, 10);
-      return await this.userModel.create({ ...data, password: hashedPassword });
+      const user = await this.userModel.create({
+        ...data,
+        password: hashedPassword,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...result } = user.toObject();
+      return result;
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -28,7 +35,7 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      return await this.userModel.findOne({ email });
+      return await this.userModel.findOne({ email }, { password: 0 });
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -36,7 +43,7 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     try {
-      return await this.userModel.find();
+      return await this.userModel.find({ password: 0 });
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -44,7 +51,9 @@ export class UsersService {
 
   async findOne(id: string): Promise<User | null> {
     try {
-      return await this.userModel.findById(id);
+      return await this.userModel.findById(id, {
+        password: 0,
+      });
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -61,6 +70,29 @@ export class UsersService {
   async remove(id: number): Promise<void> {
     try {
       await this.userModel.deleteOne({ _id: id });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async seed(): Promise<void> {
+    try {
+      const count = await this.userModel.countDocuments();
+      if (count >= 2) {
+        console.log('We have users');
+        return;
+      }
+      await this.userModel.deleteMany();
+      const users = await Promise.all(
+        SEED_USERS.map(async (user) => {
+          return {
+            ...user,
+            password: await bcrypt.hash(user.password, 10),
+          };
+        }),
+      );
+      await this.userModel.insertMany(users);
+      console.log('Seeder executed');
     } catch (error) {
       throw new BadRequestException(error);
     }
