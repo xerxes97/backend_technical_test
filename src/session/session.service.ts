@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
-import { UpdateSessionDto } from './dto/update-session.dto';
 import { Session } from './entities/session.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { UpdateSessionDto } from './dto/update-session.dto';
 
 @Injectable()
 export class SessionService {
@@ -26,8 +26,19 @@ export class SessionService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(id: number, updateSessionDto: UpdateSessionDto) {
-    return `This action updates a #${id} session`;
+  async findByRefreshToken(refreshToken: string): Promise<Session | null> {
+    try {
+      return await this.sessionModel.findOne({ refreshToken });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async update(id: string, updateSessionDto: UpdateSessionDto): Promise<void> {
+    try {
+      await this.sessionModel.updateOne({ _id: id }, updateSessionDto);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 }

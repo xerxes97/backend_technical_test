@@ -8,6 +8,8 @@ import { RecoverPasswordDto } from './dto/recoverPassword.dto';
 import { mailTemplates } from 'src/sender-email/templates';
 import { RECOVER_PASSWORD_SUBJECT } from 'src/constants';
 import { SessionService } from 'src/session/session.service';
+import { RefreshTokenDto } from './dto/refreshToken.dto';
+import { IGenerateTokens, JwtPayload } from './types';
 
 @Injectable()
 export class AuthService {
@@ -33,20 +35,12 @@ export class AuthService {
         throw new BadRequestException('User Inactive');
       }
       const payload = { email: existingUser.email, id: existingUser._id };
-      const token = this.jwtService.sign(payload, {
-        secret: process.env.JWT_SECRET,
-        expiresIn: process.env.JWT_EXPIRES,
-      });
-      const refreshToken = this.jwtService.sign(payload, {
-        secret: process.env.JWT_REFRESH_TOKEN,
-        expiresIn: process.env.JWT_REFRESH_EXPIRES,
-      });
-      const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+      const { token, refreshToken } = await this.generateTokens(payload);
       await this.sessionService.create({
         userId: existingUser._id,
-        refreshToken: hashedRefreshToken,
+        refreshToken,
       });
-      return token;
+      return { token, refreshToken };
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -71,5 +65,43 @@ export class AuthService {
     } catch (error) {
       throw new BadRequestException(error);
     }
+  }
+
+  async refreshToken(refreshTokenDto: RefreshTokenDto) {
+    try {
+      const { refreshToken } = refreshTokenDto;
+      const session =
+        await this.sessionService.findByRefreshToken(refreshToken);
+      if (!session) {
+        throw new BadRequestException('Invalid refresh token');
+      }
+      const decoded: JwtPayload = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_TOKEN,
+      });
+      const payload = { email: decoded.email, id: decoded.id };
+      const { token, refreshToken: refreshTokenHashed } =
+        await this.generateTokens(payload);
+      await this.sessionService.update(session._id, {
+        refreshToken: refreshTokenHashed,
+      });
+      return { token, refreshToken: refreshTokenHashed };
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async generateTokens(props: IGenerateTokens) {
+    const { email, id } = props;
+    const payload = { email, id };
+    const token = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.JWT_EXPIRES,
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_TOKEN,
+      expiresIn: process.env.JWT_REFRESH_EXPIRES,
+    });
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    return { token, refreshToken: hashedRefreshToken };
   }
 }

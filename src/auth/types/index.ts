@@ -4,3 +4,5 @@ export interface JwtPayload {
   iat: number;
   exp: number;
 }
+
+export type IGenerateTokens = Pick<JwtPayload, 'email' | 'id'>;
